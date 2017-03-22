@@ -1,5 +1,11 @@
 package parser
 
+/* NOTES:
+<expr> → <term> {(+ | -) <term>}
+<term> → <factor> {(* | /) <factor>}
+<factor> → id | int_constant | ( <expr> )
+*/
+
 import (
 	"fmt"
 
@@ -7,14 +13,11 @@ import (
 	"github.com/bchip/trippi-CS451/token"
 )
 
-
 type Parser struct {
-	l      *lexer.Lexer
-	errors []string
+	l         *lexer.Lexer
+	errors    []string
 	curToken  token.Token
 	peekToken token.Token
-
-
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -28,15 +31,99 @@ func New(l *lexer.Lexer) *Parser {
 
 func (p *Parser) ParseProgram() {
 	for p.curToken.Type != token.EOF {
-		switch p.curToken.Type{
+		switch p.curToken.Type {
 		case "LET":
 			p.parseLetStatement()
+		case "IF":
+			p.parseIfExpression()
 		}
 		p.nextToken()
 
 	}
 }
 
+func (p *Parser) parseLetStatement() {
+	if !p.expectPeek(token.IDENT) {
+		return
+	}
+	if !p.expectPeek(token.ASSIGN) {
+		return
+	}
+	p.nextToken()
+	if p.peekTokenIs(token.PLUS) || p.peekTokenIs(token.MINUS) {
+		p.expr()
+	} else if p.peekTokenIs(token.ASTERISK) || p.peekTokenIs(token.SLASH) {
+		p.term()
+	} else if p.peekTokenIs(token.SEMICOLON) {
+		p.isLiteral()
+	} else {
+		msg := fmt.Sprintf("Incorrect let statement!")
+		p.errors = append(p.errors, msg)
+	}
+
+}
+
+func (p *Parser) expr() {
+	for p.peekTokenIs(token.PLUS) || p.peekTokenIs(token.MINUS) {
+		p.nextToken()
+		p.term()
+	}
+}
+
+func (p *Parser) term() {
+	p.factor()
+	for p.peekTokenIs(token.ASTERISK) || p.peekTokenIs(token.SLASH) {
+		p.nextToken()
+		p.factor()
+	}
+}
+
+func (p *Parser) factor() {
+	if p.peekTokenIs(token.IDENT) || p.peekTokenIs(token.INT) {
+		p.nextToken()
+	} else {
+		if p.expectPeek(token.LPAREN) {
+			//p.nextToken()
+			p.expr()
+			if !p.expectPeek(token.LPAREN) {
+				return
+			}
+		} else {
+			return
+		}
+	}
+}
+
+func (p *Parser) parseIfExpression() {
+	if !p.expectPeek(token.LPAREN) {
+		return
+	}
+	p.nextToken()
+	p.boolExpr()
+	if !p.expectPeek(token.RPAREN) {
+		return
+	}
+
+}
+
+func (p *Parser) boolExpr() {
+	if p.peekTokenIs(token.LT) || p.peekTokenIs(token.GT) || p.peekTokenIs(token.EQ) || p.peekTokenIs(token.NOT_EQ) {
+		if p.curTokenIs(token.IDENT) || p.curTokenIs(token.INT) {
+			p.nextToken()
+			if p.peekTokenIs(token.IDENT) || p.peekTokenIs(token.INT) {
+				p.nextToken()
+				return
+			}
+		}
+	} else if p.curTokenIs(token.TRUE) || p.curTokenIs(token.FALSE) {
+		return
+	} else {
+		msg := fmt.Sprintf("Incorrect if statement")
+		p.errors = append(p.errors, msg)
+	}
+}
+
+/* HELPERS */
 func (p *Parser) Errors() []string {
 	return p.errors
 }
@@ -45,54 +132,6 @@ func (p *Parser) nextToken() {
 	p.curToken = p.peekToken
 	p.peekToken = p.l.NextToken()
 }
-
-func (p *Parser) parseLetStatement() {
-	p.expectPeek(token.IDENT)
-	p.expectPeek(token.ASSIGN)
-	p.nextToken()
-    switch true{
-    case p.curTokenIs(token.LBRACE):
-	    p.handleEquation()
-	    break;
-    case p.curTokenIs(token.INT):
-		break;
-    case p.curTokenIs(token.TRUE):
-		break
-    case p.curTokenIs(token.FALSE):
-	    break
-    case p.curTokenIs(token.IDENT):
-	    break
-    default:
-	    msg := fmt.Sprintf("expected next token to be a number, string, or int but got %s", p.peekToken.Type)
-	    p.errors = append(p.errors, msg)
-    }
-	for !(p.curTokenIs(token.SEMICOLON)) {
-		p.nextToken()
-	}
-
-
-}
-
-func (p *Parser) handleEquation(){
-	p.nextToken()
-	for !(p.curTokenIs(token.RBRACE)){
-		switch true{
-		case p.curTokenIs(token.INT):
-			if !(p.peekTokenIs(token.PLUS) && p.peekTokenIs(token.MINUS) && p.peekTokenIs(token.ASTERISK) && p.peekTokenIs(token.SLASH)){
-				msg := fmt.Sprintf("expected next token to be a operator but got %s", p.peekToken.Type)
-				p.errors = append(p.errors, msg)
-				break;
-			}
-			break;
-		default:
-			msg := fmt.Sprintf("expected next token to be a number but got %s", p.curToken.Type)
-			p.errors = append(p.errors, msg)
-		}
-		p.nextToken()
-	}
-	p.nextToken()
-}
-
 
 func (p *Parser) peekError(t token.TokenType) {
 	msg := fmt.Sprintf("expected next token to be %s but got %s", t, p.peekToken.Type)
@@ -117,26 +156,22 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 	}
 }
 
-func (p *Parser) parseIfExpression()  {
-	if !p.expectPeek(token.LPAREN) {
-		return
-	}
-
-	p.nextToken()
-
-	if !p.expectPeek(token.RPAREN) {
-		return
-	}
-	if !p.expectPeek(token.LBRACE) {
-		return
-	}
-
-	if p.peekTokenIs(token.ELSE) {
+func (p *Parser) expectCur(t token.TokenType) bool {
+	if p.curTokenIs(t) {
 		p.nextToken()
-		if !p.expectPeek(token.LBRACE) {
-			return
-		}
+		return true
+	} else {
+		p.peekError(t)
+		return false
+	}
+}
+
+func (p *Parser) isLiteral() {
+	if p.curTokenIs(token.INT) || p.curTokenIs(token.IDENT) || p.curTokenIs(token.STRING) || p.curTokenIs(token.TRUE) || p.curTokenIs(token.FALSE) {
+		return
+	} else {
+		msg := fmt.Sprintf("Expecting literal!")
+		p.errors = append(p.errors, msg)
 	}
 
 }
-

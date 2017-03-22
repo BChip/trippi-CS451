@@ -9,11 +9,11 @@ import (
 
 func TestLetStatements(t *testing.T) {
 	tests := []struct {
-		input              string
+		input string
 	}{
 		{"let x = 5 + 5;"},
 		{"let y = true;"},
-		{"let foobar = y;"},
+		{"if(4 != 5)"},
 	}
 
 	for _, test := range tests {
@@ -24,4 +24,3 @@ func TestLetStatements(t *testing.T) {
 		fmt.Println(p.errors)
 	}
 }
-
