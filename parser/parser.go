@@ -138,7 +138,8 @@ func (p *Parser) parseFor() {
 	if !p.expectPeek(token.IDENT) {
 		return
 	}
-	if !(p.peekTokenIs(token.INC) && p.peekTokenIs(token.DEC)) {
+
+	if !p.peekTokenIs(token.INC) && !p.peekTokenIs(token.DEC) {
 		msg := fmt.Sprintf("Missing ++ or --")
 		p.errors = append(p.errors, msg)
 		return
