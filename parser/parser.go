@@ -66,6 +66,11 @@ func (p *Parser) parseLetStatement() {
 	if !p.expectPeek(token.IDENT) {
 		return
 	}
+	if p.peekTokenIs(token.ARR) {
+		p.nextToken()
+		p.parseArr()
+		return
+	}
 	if !p.expectPeek(token.ASSIGN) {
 		return
 	}
@@ -88,6 +93,21 @@ func (p *Parser) parseLetStatement() {
 		p.errors = append(p.errors, msg)
 	}
 
+}
+
+func (p *Parser) parseArr() {
+	if !p.expectPeek(token.ASSIGN) {
+		return
+	}
+	if !p.expectPeek(token.LBRACE) {
+		return
+	}
+	if p.peekTokenIs(token.RBRACE) {
+		p.isLiteral()
+		if !p.expectPeek(token.SEMICOLON) {
+			return
+		}
+	}
 }
 
 func (p *Parser) expr() {

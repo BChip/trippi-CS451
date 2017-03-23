@@ -13,6 +13,7 @@ const (
 
 	IDENT = "IDENT"
 	INT   = "INT"
+	ARR   = "[]"
 
 	ASSIGN   = "="
 	ASTERISK = "*"

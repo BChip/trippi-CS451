@@ -127,7 +127,13 @@ func (l *Lexer) NextToken() token.Token {
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
 	case '[':
-		tok = newToken(token.LBRACKET, l.ch)
+		if l.peakChar() == ']' {
+			ch := l.ch
+			l.readChar()
+			tok = token.Token{Type: token.ARR, Literal: string(ch) + string(l.ch)}
+		} else {
+			tok = newToken(token.LBRACKET, l.ch)
+		}
 	case ']':
 		tok = newToken(token.RBRACKET, l.ch)
 	case 0:
