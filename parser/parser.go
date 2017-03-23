@@ -32,14 +32,30 @@ func New(l *lexer.Lexer) *Parser {
 func (p *Parser) ParseProgram() {
 	for !p.peekTokenIs(token.EOF) {
 		switch p.curToken.Type {
+		case "}":
+			return
 		case "LET":
 			p.parseLetStatement()
 		case "IF":
 			p.parseIfExpression()
+		case "ELSE":
+			msg := fmt.Sprintf("You cannot have an else statement if there is no if statement")
+			p.errors = append(p.errors, msg)
+			return
 		case "WHILE":
 			p.parseWhile()
 		case "FOR":
 			p.parseFor()
+		case "CONST":
+			p.parseLetStatement()
+		case "PRINT":
+			p.parsePrint()
+		case "INPUT":
+			p.parseLetStatement() //parseLetStatement
+		case "CONCAT":
+			p.parseConcat()
+		case "LENGTH":
+			p.parseLength()
 		}
 		p.nextToken()
 
@@ -51,6 +67,13 @@ func (p *Parser) parseLetStatement() {
 		return
 	}
 	if !p.expectPeek(token.ASSIGN) {
+		return
+	}
+	if p.peekTokenIs(token.INPUT) {
+		p.nextToken()
+		if !p.expectPeek(token.SEMICOLON) {
+			return
+		}
 		return
 	}
 	p.nextToken()
@@ -102,8 +125,8 @@ func (p *Parser) parseIfExpression() {
 	if !p.expectPeek(token.LPAREN) {
 		return
 	}
-	p.nextToken()
 	p.boolExpr()
+	p.nextToken()
 	if !p.expectPeek(token.RPAREN) {
 		return
 	}
@@ -114,7 +137,20 @@ func (p *Parser) parseIfExpression() {
 	if !p.expectCur(token.RBRACE) {
 		return
 	}
+	if p.curTokenIs(token.ELSE) {
+		p.parseElse()
+	}
 
+}
+
+func (p *Parser) parseElse() {
+	if !p.expectPeek(token.LBRACE) {
+		return
+	}
+	p.ParseProgram()
+	if !p.expectCur(token.RBRACE) {
+		return
+	}
 }
 
 func (p *Parser) parseWhile() {
@@ -157,6 +193,57 @@ func (p *Parser) parseFor() {
 	}
 }
 
+func (p *Parser) parsePrint() {
+	if !p.expectPeek(token.LPAREN) {
+		return
+	}
+	if !p.expectPeek(token.STRING) {
+		return
+	}
+	if !p.expectPeek(token.RPAREN) {
+		return
+	}
+	if !p.expectPeek(token.SEMICOLON) {
+		return
+	}
+}
+
+func (p *Parser) parseConcat() {
+	if !p.expectPeek(token.LPAREN) {
+		return
+	}
+	if !p.expectPeek(token.IDENT) && !p.expectPeek(token.STRING) {
+		return
+	}
+	if !p.expectPeek(token.COMMA) {
+		return
+	}
+	if !p.expectPeek(token.IDENT) && !p.expectPeek(token.STRING) {
+		return
+	}
+	if !p.expectPeek(token.RPAREN) {
+		return
+	}
+	if !p.expectPeek(token.SEMICOLON) {
+		return
+	}
+}
+
+func (p *Parser) parseLength() {
+	if !p.expectPeek(token.LPAREN) {
+		return
+	}
+	if !p.expectPeek(token.STRING) {
+		return
+	}
+	if !p.expectPeek(token.RPAREN) {
+		return
+	}
+	if !p.expectPeek(token.SEMICOLON) {
+		return
+	}
+}
+
 func (p *Parser) boolExpr() {
 	if p.peekTokenIs(token.LT) || p.peekTokenIs(token.GT) || p.peekTokenIs(token.EQ) || p.peekTokenIs(token.NOT_EQ) {
 		if p.curTokenIs(token.IDENT) || p.curTokenIs(token.INT) {
@@ -166,10 +253,10 @@ func (p *Parser) boolExpr() {
 				return
 			}
 		}
-	} else if p.curTokenIs(token.TRUE) || p.curTokenIs(token.FALSE) {
+	} else if p.peekTokenIs(token.TRUE) || p.peekTokenIs(token.FALSE) {
 		return
 	} else {
-		msg := fmt.Sprintf("Incorrect if statement")
+		msg := fmt.Sprintf("Incorrect statement")
 		p.errors = append(p.errors, msg)
 	}
 }

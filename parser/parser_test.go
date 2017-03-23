@@ -11,10 +11,12 @@ func TestLetStatements(t *testing.T) {
 	tests := []struct {
 		input string
 	}{
-		{"let x = 5 + 5; let y = 4;"},
-		{"let y = true;"},
-		{"if(true){let x = 5 + 5;}"},
+		{"const x = 5+ 5; let y = true;"},
+		{"let y = x;"},
+		{"if( true ){let x = 5 + 5;} else {let x = input;}"},
 		{"for(let x = 0; x < 5; x++){ let f = 3; }"},
+		{"print(\"whatup\");"},
+		{"concat(x,y); length(x); else{}"},
 	}
 
 	for _, test := range tests {
