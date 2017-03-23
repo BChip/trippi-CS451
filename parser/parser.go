@@ -102,11 +102,28 @@ func (p *Parser) parseArr() {
 	if !p.expectPeek(token.LBRACE) {
 		return
 	}
+	p.nextToken()
 	if p.peekTokenIs(token.RBRACE) {
 		p.isLiteral()
+		p.nextToken()
 		if !p.expectPeek(token.SEMICOLON) {
 			return
 		}
+	} else if p.peekTokenIs(token.COMMA) {
+		for !p.peekTokenIs(token.RBRACE) {
+			p.isLiteral()
+			if !p.expectPeek(token.COMMA) {
+				return
+			}
+			p.nextToken()
+		}
+		p.nextToken()
+		if !p.expectPeek(token.SEMICOLON) {
+			return
+		}
+	} else {
+		msg := fmt.Sprintf("Incorrect Array Initializer!")
+		p.errors = append(p.errors, msg)
 	}
 }
 
@@ -145,8 +162,8 @@ func (p *Parser) parseIfExpression() {
 	if !p.expectPeek(token.LPAREN) {
 		return
 	}
-	p.boolExpr()
 	p.nextToken()
+	p.boolExpr()
 	if !p.expectPeek(token.RPAREN) {
 		return
 	}
@@ -217,14 +234,20 @@ func (p *Parser) parsePrint() {
 	if !p.expectPeek(token.LPAREN) {
 		return
 	}
-	if !p.expectPeek(token.STRING) {
-		return
-	}
-	if !p.expectPeek(token.RPAREN) {
-		return
-	}
-	if !p.expectPeek(token.SEMICOLON) {
-		return
+	p.nextToken()
+	p.isLiteral()
+	if p.peekTokenIs(token.PLUS) {
+		for !p.peekTokenIs(token.RPAREN) {
+			p.isLiteral()
+			if !p.expectPeek(token.PLUS) {
+				return
+			}
+			p.nextToken()
+		}
+		p.nextToken()
+		if !p.expectPeek(token.SEMICOLON) {
+			return
+		}
 	}
 }
 
@@ -273,7 +296,7 @@ func (p *Parser) boolExpr() {
 				return
 			}
 		}
-	} else if p.peekTokenIs(token.TRUE) || p.peekTokenIs(token.FALSE) {
+	} else if p.curTokenIs(token.TRUE) || p.curTokenIs(token.FALSE) {
 		return
 	} else {
 		msg := fmt.Sprintf("Incorrect statement")
