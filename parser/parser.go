@@ -30,12 +30,16 @@ func New(l *lexer.Lexer) *Parser {
 }
 
 func (p *Parser) ParseProgram() {
-	for p.curToken.Type != token.EOF {
+	for !p.peekTokenIs(token.EOF) {
 		switch p.curToken.Type {
 		case "LET":
 			p.parseLetStatement()
 		case "IF":
 			p.parseIfExpression()
+		case "WHILE":
+			p.parseWhile()
+		case "FOR":
+			p.parseFor()
 		}
 		p.nextToken()
 
@@ -82,10 +86,10 @@ func (p *Parser) factor() {
 	if p.peekTokenIs(token.IDENT) || p.peekTokenIs(token.INT) {
 		p.nextToken()
 	} else {
-		if p.expectPeek(token.LPAREN) {
+		if p.expectPeek(token.INT) {
 			//p.nextToken()
 			p.expr()
-			if !p.expectPeek(token.LPAREN) {
+			if !p.expectPeek(token.INT) {
 				return
 			}
 		} else {
@@ -103,7 +107,53 @@ func (p *Parser) parseIfExpression() {
 	if !p.expectPeek(token.RPAREN) {
 		return
 	}
+	if !p.expectPeek(token.LBRACE) {
+		return
+	}
+	p.ParseProgram()
+	if !p.expectCur(token.RBRACE) {
+		return
+	}
 
+}
+
+func (p *Parser) parseWhile() {
+	p.parseIfExpression()
+}
+
+func (p *Parser) parseFor() {
+	if !p.expectPeek(token.LPAREN) {
+		return
+	}
+	if !p.expectPeek(token.LET) {
+		return
+	}
+	p.parseLetStatement()
+	p.nextToken()
+	p.nextToken()
+	p.boolExpr()
+	if !p.expectPeek(token.SEMICOLON) {
+		return
+	}
+	if !p.expectPeek(token.IDENT) {
+		return
+	}
+	if !(p.peekTokenIs(token.INC) && p.peekTokenIs(token.DEC)) {
+		msg := fmt.Sprintf("Missing ++ or --")
+		p.errors = append(p.errors, msg)
+		return
+	}
+	p.nextToken()
+	if !p.expectPeek(token.RPAREN) {
+		return
+	}
+	if !p.expectPeek(token.LBRACE) {
+		return
+	}
+	p.ParseProgram()
+	if !p.expectCur(token.RBRACE) {
+		return
+	}
 }
 
 func (p *Parser) boolExpr() {
