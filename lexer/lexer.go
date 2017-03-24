@@ -13,14 +13,12 @@ type Lexer struct {
 
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
-	//fmt.Println(l.input)
 	l.readChar()
 
 	return l
 }
 
 func (l *Lexer) readChar() {
-	//fmt.Println(l.readPosition, len(l.input))
 	if l.readPosition >= len(l.input) {
 		l.ch = 0
 	} else {
@@ -84,14 +82,7 @@ func (l *Lexer) NextToken() token.Token {
 		}
 	case '/':
 		tok = newToken(token.SLASH, l.ch)
-	case '|':
-		if l.peakChar() == '|' {
-			ch := l.ch
-			l.readChar()
-			tok = token.Token{Type: token.OR, Literal: string(ch) + string(l.ch)}
-		} else {
-			tok = newToken(token.PIPE, l.ch)
-		}
+
 	case '*':
 		tok = newToken(token.ASTERISK, l.ch)
 	case '<':

@@ -10,18 +10,12 @@ func TestNextToken(t *testing.T) {
 	input := `
 			const
 			input
-			|
-			||
 			let five = 5;
 			let ten = 10;
-
-
 			if (5 < 10) {
-
 			} else {
-
+				let t = true;
 			}
-
 			`
 
 	tests := []struct {
@@ -30,8 +24,6 @@ func TestNextToken(t *testing.T) {
 	}{
 		{token.CONST, "const"},
 		{token.INPUT, "input"},
-		{token.PIPE, "|"},
-		{token.OR, "||"},
 		{token.LET, "let"}, {token.IDENT, "five"},
 		{token.ASSIGN, "="}, {token.INT, "5"}, {token.SEMICOLON, ";"}, {token.LET, "let"},
 		{token.IDENT, "ten"}, {token.ASSIGN, "="}, {token.INT, "10"}, {token.SEMICOLON, ";"},
@@ -39,6 +31,7 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "5"}, {token.LT, "<"}, {token.INT, "10"}, {token.RPAREN, ")"},
 		{token.LBRACE, "{"},
 		{token.RBRACE, "}"}, {token.ELSE, "else"}, {token.LBRACE, "{"},
+		{token.LET, "let"}, {token.IDENT, "t"}, {token.ASSIGN, "="}, {token.TRUE, "true"}, {token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}

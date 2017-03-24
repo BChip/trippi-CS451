@@ -21,13 +21,11 @@ const (
 	MINUS    = "-"
 	PLUS     = "+"
 	SLASH    = "/"
-	PIPE     = "|"
 
 	LT     = "<"
 	GT     = ">"
 	EQ     = "=="
 	NOT_EQ = "!="
-	OR     = "||"
 	INC    = "++"
 	DEC    = "--"
 
