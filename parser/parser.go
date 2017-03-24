@@ -349,6 +349,7 @@ func (p *Parser) expectCur(t token.TokenType) bool {
 
 func (p *Parser) isLiteral() {
 	if p.curTokenIs(token.INT) || p.curTokenIs(token.IDENT) || p.curTokenIs(token.STRING) || p.curTokenIs(token.TRUE) || p.curTokenIs(token.FALSE) {
+		fmt.Println(p.curToken.Literal)
 		return
 	} else {
 		msg := fmt.Sprintf("Expecting literal!")
