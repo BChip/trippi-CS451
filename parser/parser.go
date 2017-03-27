@@ -143,13 +143,13 @@ func (p *Parser) term() {
 }
 
 func (p *Parser) factor() {
-	if p.peekTokenIs(token.IDENT) || p.peekTokenIs(token.INT) {
+	if p.peekTokenIs(token.IDENT) || p.peekTokenIs(token.INT) || p.peekTokenIs(token.FLOAT) {
 		p.nextToken()
 	} else {
-		if p.expectPeek(token.INT) {
+		if p.expectPeek(token.INT) || p.expectPeek(token.FLOAT) {
 			//p.nextToken()
 			p.expr()
-			if !p.expectPeek(token.INT) {
+			if !p.expectPeek(token.INT) && !p.expectPeek(token.FLOAT) {
 				return
 			}
 		} else {
@@ -289,9 +289,9 @@ func (p *Parser) parseLength() {
 
 func (p *Parser) boolExpr() {
 	if p.peekTokenIs(token.LT) || p.peekTokenIs(token.GT) || p.peekTokenIs(token.EQ) || p.peekTokenIs(token.NOT_EQ) {
-		if p.curTokenIs(token.IDENT) || p.curTokenIs(token.INT) {
+		if p.curTokenIs(token.IDENT) || p.curTokenIs(token.INT) || p.curTokenIs(token.FLOAT) {
 			p.nextToken()
-			if p.peekTokenIs(token.IDENT) || p.peekTokenIs(token.INT) {
+			if p.peekTokenIs(token.IDENT) || p.peekTokenIs(token.INT) || p.peekTokenIs(token.FLOAT) {
 				p.nextToken()
 				return
 			}
@@ -348,7 +348,7 @@ func (p *Parser) expectCur(t token.TokenType) bool {
 }
 
 func (p *Parser) isLiteral() {
-	if p.curTokenIs(token.INT) || p.curTokenIs(token.IDENT) || p.curTokenIs(token.STRING) || p.curTokenIs(token.TRUE) || p.curTokenIs(token.FALSE) {
+	if p.curTokenIs(token.INT) || p.curTokenIs(token.FLOAT) || p.curTokenIs(token.IDENT) || p.curTokenIs(token.STRING) || p.curTokenIs(token.TRUE) || p.curTokenIs(token.FALSE) {
 		return
 	} else {
 		msg := fmt.Sprintf("Expecting literal!")
