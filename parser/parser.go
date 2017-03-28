@@ -128,6 +128,7 @@ func (p *Parser) parseArr() {
 }
 
 func (p *Parser) expr() {
+	p.isLiteral()
 	for p.peekTokenIs(token.PLUS) || p.peekTokenIs(token.MINUS) {
 		p.nextToken()
 		p.term()

@@ -11,8 +11,8 @@ func TestLetStatements(t *testing.T) {
 	tests := []struct {
 		input string
 	}{
-		{"const x = 5 + 5; let y = true;"},
-		{"let y = x;"},
+		{"const x = 5 + 5; let y = 5;"},
+		{"let y = 5;"},
 		{"if( true ){let x = 5 + 5;} else {let x = input;}"},
 		{"for(let x = 0; x < 5; x++){ let f = 3; }"},
 		{"print(\"whatup\");"},
@@ -31,6 +31,10 @@ func TestLetStatements(t *testing.T) {
 		p := New(l)
 		p.ParseProgram()
 		fmt.Println(test)
-		fmt.Println(p.errors)
+		if len(p.errors) > 0 {
+			fmt.Println("ERRORS: ", p.errors)
+			t.Fail()
+			return
+		}
 	}
 }
