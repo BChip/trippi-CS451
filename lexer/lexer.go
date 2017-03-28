@@ -45,7 +45,6 @@ func (l *Lexer) readNumber() (string, bool, bool) {
 		if l.ch == '.' && isFloat == false {
 			isFloat = true
 		} else if l.ch == '.' && isFloat == true {
-			isFloat = false
 			isIllegal = true
 		}
 	}
@@ -150,11 +149,11 @@ func (l *Lexer) NextToken() token.Token {
 			var isFloat bool = false
 			var isIllegal bool = false
 			tok.Literal, isFloat, isIllegal = l.readNumber()
-			if isFloat {
-				tok.Type = token.FLOAT
-				return tok
-			} else if isIllegal {
+			if isIllegal {
 				tok.Type = token.ILLEGAL
+				return tok
+			} else if isFloat {
+				tok.Type = token.FLOAT
 				return tok
 			} else {
 				tok.Type = token.INT

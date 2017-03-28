@@ -8,7 +8,7 @@ import (
 
 func TestNextToken(t *testing.T) {
 	input := `
-			2.32
+			2.25
 			const
 			input
 			let five = 5;
@@ -23,7 +23,7 @@ func TestNextToken(t *testing.T) {
 		expectedType    token.TokenType
 		expectedLiteral string
 	}{
-		{token.FLOAT, "2.32"},
+		{token.FLOAT, "2.25"},
 		{token.CONST, "const"},
 		{token.INPUT, "input"},
 		{token.LET, "let"}, {token.IDENT, "five"},
