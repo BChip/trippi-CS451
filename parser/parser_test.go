@@ -11,7 +11,7 @@ func TestLetStatements(t *testing.T) {
 	tests := []struct {
 		input string
 	}{
-		{"const x = 5 + 5; let y = 5;"},
+		{"const x = 5 + 5; let y = if;"},
 		{"let y = 5;"},
 		{"if( true ){let x = 5 + 5;} else {let x = input;}"},
 		{"for(let x = 0; x < 5; x++){ let f = 3; }"},
